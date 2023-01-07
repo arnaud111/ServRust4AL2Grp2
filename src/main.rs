@@ -6,18 +6,18 @@ use std::net::{TcpListener, TcpStream};
 use std::str;
 use std::env;
 use crate::messages::input::messages_input_types::MessageInputType;
+use crate::messages::output::message_subscribe_result::{SubscribeError, SubscribeResult};
 use crate::messages::output::message_welcome::Welcome;
 use crate::messages::output::messages_output_types::MessageOutputType;
 
 fn main() {
     let listener = TcpListener::bind("0.0.0.0:7878").unwrap();
     let mut client_streams = HashMap::new();
+    let mut client_names = HashMap::new();
 
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();
         let client_ip = stream.peer_addr().unwrap();
-
-        client_streams.insert(client_ip, stream.try_clone().expect(""));
 
         let input_message = read(stream.try_clone().expect(""));
 
@@ -27,6 +27,24 @@ fn main() {
                 send(stream.try_clone().expect(""), welcome);
             }
             MessageInputType::Subscribe(_) => {}
+            MessageInputType::ChallengeResult(_) => {}
+        }
+
+        let input_message = read(stream.try_clone().expect(""));
+
+        match input_message {
+            MessageInputType::Hello => {}
+            MessageInputType::Subscribe(subscribe_message) => {
+                if client_names.contains_key(&*subscribe_message.name) {
+                    let subscribe = MessageOutputType::SubscribeResult(SubscribeResult::Err(SubscribeError::AlreadyRegistered));
+                    send(stream.try_clone().expect(""), subscribe);
+                } else {
+                    client_streams.insert(client_ip, stream.try_clone().expect(""));
+                    client_names.insert(subscribe_message.name, client_ip);
+                    let subscribe = MessageOutputType::SubscribeResult(SubscribeResult::Ok);
+                    send(stream.try_clone().expect(""), subscribe);
+                }
+            }
             MessageInputType::ChallengeResult(_) => {}
         }
     }
