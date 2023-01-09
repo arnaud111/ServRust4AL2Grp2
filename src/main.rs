@@ -2,76 +2,95 @@ mod messages;
 
 use std::collections::HashMap;
 use std::io::{Read, Write};
-use std::net::{TcpListener, TcpStream};
+use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::str;
 use std::env;
-use crate::messages::input::messages_input_types::MessageInputType;
+use std::time::Duration;
+use crate::messages::input::messages_input_types::{MessageInputResult, MessageInputType};
 use crate::messages::output::message_subscribe_result::{SubscribeError, SubscribeResult};
 use crate::messages::output::message_welcome::Welcome;
 use crate::messages::output::messages_output_types::MessageOutputType;
 
 fn main() {
     let listener = TcpListener::bind("0.0.0.0:7878").unwrap();
-    let mut client_streams = HashMap::new();
     let mut client_names = HashMap::new();
 
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();
-        let client_ip = stream.peer_addr().unwrap();
-
-        let input_message = read(stream.try_clone().expect(""));
-
-        match input_message {
-            MessageInputType::Hello => {
-                let welcome = MessageOutputType::Welcome(Welcome {version: 1});
-                send(stream.try_clone().expect(""), welcome);
-            }
-            MessageInputType::Subscribe(_) => {}
-            MessageInputType::ChallengeResult(_) => {}
+        if receive_new_stream(&stream, &mut client_names) {
+            break;
         }
+    }
+    receive_start_game(&listener);
+}
 
-        let input_message = read(stream.try_clone().expect(""));
-
-        match input_message {
-            MessageInputType::Hello => {}
-            MessageInputType::Subscribe(subscribe_message) => {
-                if client_names.contains_key(&*subscribe_message.name) {
-                    let subscribe = MessageOutputType::SubscribeResult(SubscribeResult::Err(SubscribeError::AlreadyRegistered));
-                    send(stream.try_clone().expect(""), subscribe);
-                } else {
-                    client_streams.insert(client_ip, stream.try_clone().expect(""));
-                    client_names.insert(subscribe_message.name, client_ip);
-                    let subscribe = MessageOutputType::SubscribeResult(SubscribeResult::Ok);
-                    send(stream.try_clone().expect(""), subscribe);
+fn receive_start_game(listener: &TcpListener) {
+    for stream in listener.incoming() {
+        let mut stream = stream.unwrap();
+        let optional_message_in = read(&stream, Duration::from_secs(2));
+        match optional_message_in {
+            None => {}
+            Some(message_in) => {
+                match message_in {
+                    MessageInputType::StartGame(_) => return,
+                    _ => {}
                 }
             }
-            MessageInputType::ChallengeResult(_) => {}
         }
     }
 }
 
-fn read (mut stream: TcpStream) -> MessageInputType {
+fn receive_new_stream(stream: &TcpStream, client_names: &mut HashMap<String, TcpStream>) -> bool {
     loop {
-        let mut nb = [0; 4];
-        stream.read(&mut nb).expect("Error Reading");
-        let nb = i32::from_be_bytes(nb);
-
-        if nb > 0 {
-            let mut str_bytes = vec![0; nb as usize];
-            stream.read_exact(&mut str_bytes).expect("Error Reading");
-            let str = str::from_utf8(&str_bytes).unwrap();
-            println!("Read : {}", str);
-
-            let message: MessageInputType = match serde_json::from_str(str) {
-                Ok(message) => message,
-                Err(_) => continue
-            };
-            return message;
+        let optional_message_in = read(stream, Duration::from_secs(2));
+        match optional_message_in {
+            None => break,
+            Some(message_in) => {
+                let optional_message_out = message_in.match_message(client_names, stream);
+                match optional_message_out {
+                    MessageInputResult::MessageOutputType(message_out) => {
+                        send(stream, message_out);
+                    }
+                    MessageInputResult::LaunchGame => return true,
+                    MessageInputResult::None => return false
+                }
+            }
         }
     }
+    false
 }
 
-fn send(mut stream: TcpStream, message: MessageOutputType){
+fn read (stream: &TcpStream, timeout: Duration) -> Option<MessageInputType> {
+
+    let mut stream = stream.try_clone().expect("");
+    stream.set_read_timeout(Option::from(timeout));
+
+    let mut nb = [0; 4];
+    match stream.read(&mut nb) {
+        Ok(_) => {}
+        Err(_) => return None
+    };
+    let nb = i32::from_be_bytes(nb);
+
+    let mut str_bytes = vec![0; nb as usize];
+    match stream.read_exact(&mut str_bytes) {
+        Ok(_) => {}
+        Err(_) => return None
+    };
+
+    let str = str::from_utf8(&str_bytes).unwrap();
+    println!("Read : {}", str);
+
+    let message: MessageInputType = match serde_json::from_str(str) {
+        Ok(message) => message,
+        Err(_) => return None
+    };
+    return Option::from(message);
+}
+
+fn send(stream: &TcpStream, message: MessageOutputType){
+
+    let mut stream = stream.try_clone().expect("");
 
     let str = &*serde_json::to_string(&message).unwrap();
     println!("Send : {}", str);
