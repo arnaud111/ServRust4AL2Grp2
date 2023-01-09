@@ -1,8 +1,9 @@
 mod messages;
+mod challenge_compute;
 
 use std::collections::HashMap;
 use std::io::{Read, Write};
-use std::net::{SocketAddr, TcpListener, TcpStream};
+use std::net::{Shutdown, SocketAddr, TcpListener, TcpStream};
 use std::str;
 use std::env;
 use std::time::Duration;
@@ -21,7 +22,26 @@ fn main() {
             break;
         }
     }
+    if client_names.len() == 0 {
+        return;
+    }
     receive_start_game(&listener);
+    play(&client_names);
+
+    for stream in client_names.values() {
+        stream.shutdown(Shutdown::Both).expect("Error shutdown connexion");
+    }
+}
+
+fn play(client_names: &HashMap<String, TcpStream>) {
+    let mut actual_player: String;
+    for key in client_names.keys() {
+        actual_player = key.clone();
+    }
+
+    for _ in 0..100 {
+
+    }
 }
 
 fn receive_start_game(listener: &TcpListener) {
