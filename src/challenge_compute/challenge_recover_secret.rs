@@ -1,7 +1,7 @@
 use crate::messages::input::challenges::recover_secret_input::RecoverSecretInput;
 use crate::messages::output::challenges::recover_secret_output::RecoverSecretOutput;
 use rand::{thread_rng, Rng};
-use crate::messages::input::message_challenge_result::ChallengeAnswer::RecoverSecret;
+use rand::prelude::SliceRandom;
 
 pub struct RecoverSecret {
     input: RecoverSecretInput,
@@ -24,7 +24,13 @@ impl RecoverSecret {
                 vec = RecoverSecret::create_vec_index_letters(size);
             }
             for i in 0..vec.len() {
-                letters.push(sentence.chars()[vec[i]]);
+                let char = sentence.chars().nth(vec[i]);
+                match char {
+                    None => {}
+                    Some(c) => {
+                        letters.push(c);
+                    }
+                }
                 is_used[i] = true;
             }
             tuple_sizes.push(size);
@@ -38,6 +44,7 @@ impl RecoverSecret {
     }
 
     fn create_vec_index_letters(size: usize) -> Vec<usize> {
+        let mut rng = thread_rng();
         let mut vec = Vec::new();
         for _ in 0..size {
             let mut letter_index = rng.gen_range(0, 20);
@@ -80,7 +87,7 @@ impl RecoverSecret {
         let mut rng = thread_rng();
         let mut chars: Vec<char> = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPKRSTUVWXYZ".chars().collect();
 
-        rng.shuffle(&mut chars);
+        chars.shuffle(&mut rng);
         chars[..20].iter().collect()
     }
 }
