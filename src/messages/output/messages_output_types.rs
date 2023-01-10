@@ -27,15 +27,23 @@ impl MessageOutputType {
                 MessageOutputType::Welcome(val.clone())
             }
             MessageOutputType::Challenge(val) => {
-                MessageOutputType::Challenge(val.clone());
+                MessageOutputType::Challenge(val.clone())
             }
             MessageOutputType::SubscribeResult(val) => {
                 MessageOutputType::SubscribeResult(val.clone())
             }
-            MessageOutputType::ChallengeTimeout(val) => {}
-            MessageOutputType::PublicLeaderBoard(val) => {}
-            MessageOutputType::EndOfGame(val) => {}
-            MessageOutputType::RoundSummary(val) => {}
+            MessageOutputType::ChallengeTimeout(val) => {
+                MessageOutputType::ChallengeTimeout(val.clone())
+            }
+            MessageOutputType::PublicLeaderBoard(val) => {
+                MessageOutputType::PublicLeaderBoard((*val).clone())
+            }
+            MessageOutputType::EndOfGame(val) => {
+                MessageOutputType::EndOfGame(val.clone())
+            }
+            MessageOutputType::RoundSummary(val) => {
+                MessageOutputType::RoundSummary(val.clone())
+            }
         }
     }
 }

@@ -19,7 +19,7 @@ pub enum ChallengeAnswer {
 
 impl ChallengeAnswer {
 
-    pub fn is_true(&self, challenge_sent: ChallengeMessage) -> bool {
+    pub fn is_true(&self, challenge_sent: ChallengeMessage) -> Option<bool> {
         return match self {
             ChallengeAnswer::MD5HashCash(md5) => {
                 match challenge_sent {
@@ -28,17 +28,16 @@ impl ChallengeAnswer {
                             input: md5.clone(),
                             output: md5_sent
                         };
-                        return hash_cash.is_valid();
+                        Option::from(hash_cash.is_valid())
                     }
-                    _ => {}
+                    _ => None
                 }
-                false
             }
             ChallengeAnswer::NonogramSolver(nonogram) => {
-                false
+                None
             }
             ChallengeAnswer::RecoverSecret(secret) => {
-                false
+                None
             }
         }
     }

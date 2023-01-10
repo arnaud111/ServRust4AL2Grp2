@@ -30,14 +30,14 @@ fn main() {
         return;
     }
     receive_start_game(&listener);
-    play(&client_names, complexity);
+    play(&mut client_names, complexity);
 
     for stream in client_names.values() {
         stream.shutdown(Shutdown::Both).expect("Error shutdown connexion");
     }
 }
 
-fn play(client_names: &HashMap<String, TcpStream>, complexity: i32) {
+fn play(client_names: &mut HashMap<String, TcpStream>, complexity: i32) {
     let mut actual_player = String::new();
     for key in client_names.keys() {
         actual_player = key.clone();
@@ -47,13 +47,23 @@ fn play(client_names: &HashMap<String, TcpStream>, complexity: i32) {
         println!("round : {}", i);
         println!("{}", actual_player);
         let challenge_output = HashCash::new(complexity);
-        let message_out = MessageOutputType::Challenge(ChallengeMessage::MD5HashCash(challenge_output));
+        let message_out = MessageOutputType::Challenge(ChallengeMessage::MD5HashCash(challenge_output.clone()));
         send(&client_names[&actual_player], message_out.clone());
         let challenge_result = read(&client_names[&actual_player], Duration::from_secs(2));
         match challenge_result {
-            None => {}
+            None => {
+                client_names.remove(&actual_player);
+            },
             Some(result) => {
-                is_valid = result.match_challenge_result(challenge_output);
+                let is_valid = result.match_challenge_result(ChallengeMessage::MD5HashCash(challenge_output));
+                match is_valid {
+                    None => {
+                        client_names.remove(&actual_player);
+                    },
+                    Some(valid) => {
+                        println!("{}", valid);
+                    }
+                }
             }
         }
     }

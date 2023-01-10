@@ -1,24 +1,24 @@
 use serde::Serialize;
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct RoundSummary {
     challenge: String,
     chain: Vec<ReportedChallengeResult>
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 struct ReportedChallengeResult {
     name: String,
     value: ChallengeResult
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 enum ChallengeResult {
     Ok(ChallengeOk),
     Unreachable
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 struct ChallengeOk {
     used_time: f32,
     next_target: String

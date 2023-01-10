@@ -18,7 +18,7 @@ impl ChallengeMessage {
                 ChallengeMessage::MD5HashCash(val.clone())
             }
             ChallengeMessage::RecoverSecret(val) => {
-                ChallengeMessage::RecoverSecret(val.clone());
+                ChallengeMessage::RecoverSecret(val.clone())
             }
             ChallengeMessage::NonogramSolver(val) => {
                 ChallengeMessage::NonogramSolver(val.clone())

@@ -25,8 +25,7 @@ impl MessageInputType {
     pub fn match_challenge_result(&self, challenge_sent: ChallengeMessage) -> Option<bool> {
         return match self {
             MessageInputType::ChallengeResult(result) => {
-                result.answer.is_true(challenge_sent);
-                Option::from(false)
+                result.answer.is_true(challenge_sent)
             }
             _ => None
         }
