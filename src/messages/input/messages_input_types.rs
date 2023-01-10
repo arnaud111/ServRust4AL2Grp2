@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::net::TcpStream;
 use serde::Deserialize;
-use crate::{MessageOutputType, SubscribeError, SubscribeResult, Welcome};
+use crate::{ChallengeMessage, MessageOutputType, SubscribeError, SubscribeResult, Welcome};
 use crate::messages::input::message_challenge_result::ChallengeResult;
 use crate::messages::input::message_start_game::StartGame;
 use crate::messages::input::message_subscribe::Subscribe;
@@ -21,6 +21,16 @@ pub enum MessageInputResult {
 }
 
 impl MessageInputType {
+
+    pub fn match_challenge_result(&self, challenge_sent: ChallengeMessage) -> Option<bool> {
+        return match self {
+            MessageInputType::ChallengeResult(result) => {
+                result.answer.is_true(challenge_sent);
+                Option::from(false)
+            }
+            _ => None
+        }
+    }
 
     pub fn match_message(&self, client_names: &mut HashMap<String, TcpStream>, stream: &TcpStream) -> MessageInputResult {
 

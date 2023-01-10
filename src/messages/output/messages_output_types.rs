@@ -18,3 +18,24 @@ pub enum MessageOutputType {
     EndOfGame(EndOfGame),
     RoundSummary(RoundSummary)
 }
+
+impl MessageOutputType {
+
+    pub fn clone(&self) -> MessageOutputType {
+        return match self {
+            MessageOutputType::Welcome(val) => {
+                MessageOutputType::Welcome(val.clone())
+            }
+            MessageOutputType::Challenge(val) => {
+                MessageOutputType::Challenge(val.clone());
+            }
+            MessageOutputType::SubscribeResult(val) => {
+                MessageOutputType::SubscribeResult(val.clone())
+            }
+            MessageOutputType::ChallengeTimeout(val) => {}
+            MessageOutputType::PublicLeaderBoard(val) => {}
+            MessageOutputType::EndOfGame(val) => {}
+            MessageOutputType::RoundSummary(val) => {}
+        }
+    }
+}

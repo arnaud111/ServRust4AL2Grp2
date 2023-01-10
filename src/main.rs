@@ -7,7 +7,10 @@ use std::net::{Shutdown, SocketAddr, TcpListener, TcpStream};
 use std::str;
 use std::env;
 use std::time::Duration;
+use crate::challenge_compute::challenge_recover_secret::RecoverSecret;
+use crate::challenge_compute::hash_cash::HashCash;
 use crate::messages::input::messages_input_types::{MessageInputResult, MessageInputType};
+use crate::messages::output::message_challenge::ChallengeMessage;
 use crate::messages::output::message_subscribe_result::{SubscribeError, SubscribeResult};
 use crate::messages::output::message_welcome::Welcome;
 use crate::messages::output::messages_output_types::MessageOutputType;
@@ -15,6 +18,7 @@ use crate::messages::output::messages_output_types::MessageOutputType;
 fn main() {
     let listener = TcpListener::bind("0.0.0.0:7878").unwrap();
     let mut client_names = HashMap::new();
+    let complexity = 16;
 
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();
@@ -26,21 +30,32 @@ fn main() {
         return;
     }
     receive_start_game(&listener);
-    play(&client_names);
+    play(&client_names, complexity);
 
     for stream in client_names.values() {
         stream.shutdown(Shutdown::Both).expect("Error shutdown connexion");
     }
 }
 
-fn play(client_names: &HashMap<String, TcpStream>) {
-    let mut actual_player: String;
+fn play(client_names: &HashMap<String, TcpStream>, complexity: i32) {
+    let mut actual_player = String::new();
     for key in client_names.keys() {
         actual_player = key.clone();
     }
 
-    for _ in 0..100 {
-
+    for i in 0..100 {
+        println!("round : {}", i);
+        println!("{}", actual_player);
+        let challenge_output = HashCash::new(complexity);
+        let message_out = MessageOutputType::Challenge(ChallengeMessage::MD5HashCash(challenge_output));
+        send(&client_names[&actual_player], message_out.clone());
+        let challenge_result = read(&client_names[&actual_player], Duration::from_secs(2));
+        match challenge_result {
+            None => {}
+            Some(result) => {
+                is_valid = result.match_challenge_result(challenge_output);
+            }
+        }
     }
 }
 

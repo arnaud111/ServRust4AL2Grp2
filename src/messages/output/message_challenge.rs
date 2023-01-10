@@ -10,3 +10,19 @@ pub enum ChallengeMessage {
     RecoverSecret(RecoverSecretOutput),
     NonogramSolver(NonogramSolverOutput)
 }
+
+impl ChallengeMessage {
+    pub fn clone(&self) -> ChallengeMessage {
+        return match self {
+            ChallengeMessage::MD5HashCash(val) => {
+                ChallengeMessage::MD5HashCash(val.clone())
+            }
+            ChallengeMessage::RecoverSecret(val) => {
+                ChallengeMessage::RecoverSecret(val.clone());
+            }
+            ChallengeMessage::NonogramSolver(val) => {
+                ChallengeMessage::NonogramSolver(val.clone())
+            }
+        }
+    }
+}

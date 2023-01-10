@@ -2,6 +2,7 @@ use crate::messages::input::challenges::recover_secret_input::RecoverSecretInput
 use crate::messages::output::challenges::recover_secret_output::RecoverSecretOutput;
 use rand::{thread_rng, Rng};
 use rand::prelude::SliceRandom;
+use rand::rngs::ThreadRng;
 
 pub struct RecoverSecret {
     input: RecoverSecretInput,
@@ -12,16 +13,16 @@ impl RecoverSecret {
     
     pub fn new() -> RecoverSecretOutput {
         let mut rng = thread_rng();
-        let sentence = RecoverSecret::create_sentence();
+        let sentence = RecoverSecret::create_sentence(&mut rng);
         let mut is_used: [bool; 20] = [false; 20];
         let mut letters=  String::new();
         let mut tuple_sizes= Vec::new();
 
         while !RecoverSecret::all_used(&is_used) {
             let size: usize = rng.gen_range(4, 10);
-            let mut vec = RecoverSecret::create_vec_index_letters(size);
+            let mut vec = RecoverSecret::create_vec_index_letters(size, &mut rng);
             while RecoverSecret::all_already_used(&vec, &is_used) {
-                vec = RecoverSecret::create_vec_index_letters(size);
+                vec = RecoverSecret::create_vec_index_letters(size, &mut rng);
             }
             for i in 0..vec.len() {
                 let char = sentence.chars().nth(vec[i]);
@@ -31,11 +32,10 @@ impl RecoverSecret {
                         letters.push(c);
                     }
                 }
-                is_used[i] = true;
+                is_used[vec[i]] = true;
             }
             tuple_sizes.push(size);
         }
-
         RecoverSecretOutput {
             word_count: 1,
             letters,
@@ -43,8 +43,7 @@ impl RecoverSecret {
         }
     }
 
-    fn create_vec_index_letters(size: usize) -> Vec<usize> {
-        let mut rng = thread_rng();
+    fn create_vec_index_letters(size: usize, rng: &mut ThreadRng) -> Vec<usize> {
         let mut vec = Vec::new();
         for _ in 0..size {
             let mut letter_index = rng.gen_range(0, 20);
@@ -58,7 +57,7 @@ impl RecoverSecret {
 
     fn all_already_used(vec: &Vec<usize>, is_used: &[bool; 20]) -> bool {
         for i in 0..vec.len() {
-            if !is_used[i] {
+            if !is_used[vec[i]] {
                 return false;
             }
         }
@@ -83,11 +82,10 @@ impl RecoverSecret {
         true
     }
 
-    fn create_sentence() -> String {
-        let mut rng = thread_rng();
+    fn create_sentence(rng: &mut ThreadRng) -> String {
         let mut chars: Vec<char> = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPKRSTUVWXYZ".chars().collect();
 
-        chars.shuffle(&mut rng);
+        chars.shuffle(rng);
         chars[..20].iter().collect()
     }
 }

@@ -1,5 +1,5 @@
 pub mod messages_output_types;
-mod message_challenge;
+pub mod message_challenge;
 mod message_challenge_timeout;
 mod message_end_of_game;
 mod message_public_leader_board;
