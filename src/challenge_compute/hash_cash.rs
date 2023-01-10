@@ -1,5 +1,5 @@
 use rand::prelude::{SliceRandom, ThreadRng};
-use rand::thread_rng;
+use rand::{Rng, thread_rng};
 use md5::{Digest, Md5};
 use crate::messages::input::challenges::hash_cash_input::MD5HashCashInput;
 use crate::messages::output::challenges::hash_cash_output::Md5HashCashOutput;
@@ -71,9 +71,17 @@ impl HashCash {
     }
 
     fn create_sentence(rng: &mut ThreadRng) -> String {
-        let mut chars: Vec<char> = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPKRSTUVWXYZ".chars().collect();
+        let subjects = ["I", "You", "They", "We", "John", "Mary", "The dog", "The cat", "The car"];
+        let predicates = ["am", "like", "have", "want", "need", "prefer", "hate", "love", "despise", "enjoy", "appreciate"];
+        let objects = ["pizza", "an apple", "to be happy", "the sky", "the sun", "the moon", "a book", "a movie", "a song"];
+        let adverbs = ["quickly", "carefully", "happily", "angrily", "sadly", "anxiously", "eagerly", "nervously"];
+        let temporal_complement = ["yesterday", "today", "tomorrow", "next week", "next month", "next year"];
 
-        chars.shuffle(rng);
-        chars[..20].iter().collect()
+        let subject = subjects[rng.gen_range(0, subjects.len())];
+        let predicate = predicates[rng.gen_range(0, predicates.len())];
+        let object = objects[rng.gen_range(0, objects.len())];
+        let adverb = adverbs[rng.gen_range(0, adverbs.len())];
+        let temporal = temporal_complement[rng.gen_range(0, temporal_complement.len())];
+        format!("{} {} {} {} {}.", subject, adverb, predicate, object, temporal)
     }
 }
