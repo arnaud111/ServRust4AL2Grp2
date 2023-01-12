@@ -1,15 +1,6 @@
 use serde::Serialize;
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct ChallengeTimeout {
     message: String
-}
-
-impl ChallengeTimeout {
-
-    pub fn clone(&self) -> ChallengeTimeout {
-        ChallengeTimeout {
-            message: self.message.clone()
-        }
-    }
 }

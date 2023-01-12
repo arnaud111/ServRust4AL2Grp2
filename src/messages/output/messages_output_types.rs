@@ -8,7 +8,7 @@ use crate::messages::output::message_round_summary::RoundSummary;
 use crate::messages::output::message_subscribe_result::SubscribeResult;
 use crate::messages::output::message_welcome::Welcome;
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub enum MessageOutputType {
     Welcome(Welcome),
     Challenge(ChallengeMessage),
@@ -17,33 +17,4 @@ pub enum MessageOutputType {
     PublicLeaderBoard(Vec<PublicPlayer>),
     EndOfGame(EndOfGame),
     RoundSummary(RoundSummary)
-}
-
-impl MessageOutputType {
-
-    pub fn clone(&self) -> MessageOutputType {
-        return match self {
-            MessageOutputType::Welcome(val) => {
-                MessageOutputType::Welcome(val.clone())
-            }
-            MessageOutputType::Challenge(val) => {
-                MessageOutputType::Challenge(val.clone())
-            }
-            MessageOutputType::SubscribeResult(val) => {
-                MessageOutputType::SubscribeResult(val.clone())
-            }
-            MessageOutputType::ChallengeTimeout(val) => {
-                MessageOutputType::ChallengeTimeout(val.clone())
-            }
-            MessageOutputType::PublicLeaderBoard(val) => {
-                MessageOutputType::PublicLeaderBoard((*val).clone())
-            }
-            MessageOutputType::EndOfGame(val) => {
-                MessageOutputType::EndOfGame(val.clone())
-            }
-            MessageOutputType::RoundSummary(val) => {
-                MessageOutputType::RoundSummary(val.clone())
-            }
-        }
-    }
 }
