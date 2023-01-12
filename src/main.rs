@@ -105,9 +105,8 @@ fn receive_new_stream(stream: &TcpStream, client_names: &mut HashMap<String, Tcp
     false
 }
 
-fn read (stream: &TcpStream, timeout: Duration) -> Option<MessageInputType> {
+fn read (mut stream: &TcpStream, timeout: Duration) -> Option<MessageInputType> {
 
-    let mut stream = stream.try_clone().expect("");
     stream.set_read_timeout(Option::from(timeout));
 
     let mut nb = [0; 4];
@@ -133,9 +132,7 @@ fn read (stream: &TcpStream, timeout: Duration) -> Option<MessageInputType> {
     return Option::from(message);
 }
 
-fn send(stream: &TcpStream, message: MessageOutputType){
-
-    let mut stream = stream.try_clone().expect("");
+fn send(mut stream: &TcpStream, message: MessageOutputType){
 
     let str = &*serde_json::to_string(&message).unwrap();
     println!("Send : {}", str);
