@@ -33,7 +33,7 @@ fn main() {
     play(&mut client_names, complexity);
 
     for stream in client_names.values() {
-        stream.shutdown(Shutdown::Both).expect("Error shutdown connexion");
+        stream.shutdown(Shutdown::Both);
     }
 }
 
@@ -147,5 +147,5 @@ fn send(mut stream: &TcpStream, message: MessageOutputType){
         buf.push(*x);
     }
 
-    stream.write(&buf).expect("Error Sending Message");
+    stream.write(&buf);
 }
