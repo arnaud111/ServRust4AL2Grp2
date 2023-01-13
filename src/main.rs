@@ -122,7 +122,10 @@ fn read (mut stream: &TcpStream, timeout: Duration) -> Option<MessageInputType> 
         Err(_) => return None
     };
 
-    let str = str::from_utf8(&str_bytes).unwrap();
+    let str = match str::from_utf8(&str_bytes) {
+        Ok(str) => str,
+        Err(_) => ""
+    };
     println!("Read : {}", str);
 
     let message: MessageInputType = match serde_json::from_str(str) {
@@ -134,7 +137,10 @@ fn read (mut stream: &TcpStream, timeout: Duration) -> Option<MessageInputType> 
 
 fn send(mut stream: &TcpStream, message: MessageOutputType){
 
-    let str = &*serde_json::to_string(&message).unwrap();
+    let str = match serde_json::to_string(&message) {
+        Ok(str) => str,
+        Err(_) => "".to_string()
+    };
     println!("Send : {}", str);
     let str_bytes = str.as_bytes();
 
