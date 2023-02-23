@@ -12,6 +12,7 @@ use crate::challenge_compute::hash_cash::HashCash;
 use crate::messages::input::messages_input_types::{MessageInputResult, MessageInputType};
 use crate::messages::output::challenges::hash_cash_output::Md5HashCashOutput;
 use crate::messages::output::message_challenge::ChallengeMessage;
+use crate::messages::output::message_end_of_game::EndOfGame;
 use crate::messages::output::message_public_leader_board::PublicPlayer;
 use crate::messages::output::message_subscribe_result::{SubscribeError, SubscribeResult};
 use crate::messages::output::message_welcome::Welcome;
@@ -33,6 +34,7 @@ fn main() {
     }
     receive_start_game(&listener);
     play(&mut client_names, complexity);
+    send_all_end_of_game(&mut client_names);
 
     for stream in client_names.values() {
         stream.0.shutdown(Shutdown::Both);
@@ -42,7 +44,7 @@ fn main() {
 fn play(client_names: &mut HashMap<String, (TcpStream, PublicPlayer)>, complexity: i32) {
     let mut actual_player = get_first_player_actif(client_names);
 
-    for i in 0..100 {
+    for _ in 0..100 {
         match round(&mut actual_player, client_names, complexity) {
             None => {
                 actual_player = get_first_player_actif(client_names);
@@ -117,6 +119,17 @@ fn send_all_public_leader_board(client_names: &mut HashMap<String, (TcpStream, P
         public_leader_board.push(value.1.clone());
     }
     let message_out = MessageOutputType::PublicLeaderBoard(public_leader_board);
+    for (_, value) in client_names.into_iter() {
+        send(&value.0, message_out.clone());
+    }
+}
+
+fn send_all_end_of_game(client_names: &mut HashMap<String, (TcpStream, PublicPlayer)>) {
+    let mut public_leader_board = Vec::new();
+    for (_, value) in client_names.into_iter() {
+        public_leader_board.push(value.1.clone());
+    }
+    let message_out = MessageOutputType::EndOfGame(EndOfGame { leader_board: public_leader_board });
     for (_, value) in client_names.into_iter() {
         send(&value.0, message_out.clone());
     }
