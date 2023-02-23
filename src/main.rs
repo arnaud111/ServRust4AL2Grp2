@@ -71,8 +71,10 @@ fn round(actual_player: &mut String, client_names: &mut HashMap<String, (TcpStre
     let mut challenge_output;
     let mut challenge_result;
     let mut last_player = actual_player.clone();
+    let mut timer_challenge;
 
     while timer.elapsed().as_secs() < 2 {
+        timer_challenge = Instant::now();
         challenge_output = send_challenge(actual_player, client_names, complexity);
         challenge_result = read(&client_names[actual_player].0, Duration::from_secs(2));
         match challenge_result {
@@ -95,6 +97,9 @@ fn round(actual_player: &mut String, client_names: &mut HashMap<String, (TcpStre
                     }
                 }
             }
+        }
+        if let Some((_, public_player)) = client_names.get_mut(&last_player) {
+            public_player.total_used_time += timer_challenge.elapsed().as_secs_f32();
         }
         send_all_public_leader_board(client_names);
     }
